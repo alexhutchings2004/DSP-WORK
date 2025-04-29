@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Twitter Image Selector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="dark-theme">
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <i class="fas fa-shield-alt brand-icon"></i>
+        <h2>DeepFake Detector</h2>
+      </div>
+      <div class="version">v1.0</div>
+    </div>
+    
+    <div class="content">
+      <button id="initialize-btn" class="primary-btn">
+        <span class="btn-text">Select Twitter Image</span>
+        <i class="fas fa-camera-retro btn-icon"></i>
+      </button>
+      
+      <div class="status-container">
+        <p id="status">Click the button to select an image from Twitter</p>
+        <div class="loader" id="loader"></div>
+      </div>
+      
+      <div id="selected-image-container">
+        <div class="image-frame">
+          <img id="selected-image" src="" alt="Selected image">
+        </div>
+        <div class="image-details">
+          <p id="image-url"></p>
+          <div class="model-info">
+            <div class="model-header">
+              <i class="fas fa-brain"></i>
+              <p class="model-title">EfficientNet Model</p>
+            </div>
+            <p class="model-description">High-accuracy deepfake detection</p>
+            <select id="model-select" style="display: none;">
+              <option value="efficientnet_model" selected>EfficientNet</option>
+            </select>
+          </div>
+          <div class="buttons-container">
+            <button id="analyze-btn" class="analyze-btn">
+              <span class="btn-text">Analyse Image</span>
+              <i class="fas fa-search btn-icon"></i>
+            </button>
+            <button id="clear-btn">Clear Image</button>
+          </div>
+        </div>
+      </div>
+      
+      <div id="analysis-container" class="analysis-container">
+        <div class="analysis-header">
+          <h3><i class="fas fa-chart-bar"></i> Analysis Results</h3>
+          <div class="loader" id="analysis-loader"></div>
+        </div>
+        
+        <div id="results-content">
+          <div class="result-item">
+            <div class="result-label">Prediction:</div>
+            <div id="prediction-result" class="result-value"></div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Confidence:</div>
+            <div id="confidence-result" class="result-value"></div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">Model:</div>
+            <div id="model-result" class="result-value">EfficientNet</div>
+          </div>
+          <div id="additional-results" class="additional-results"></div>
+          
+          <div id="image-with-faces-container" class="image-with-faces-container">
+            <p class="section-title">Analysed Image</p>
+            <div class="image-frame">
+              <img id="image-with-faces" src="" alt="Image with faces highlighted">
+            </div>
+          </div>
+          
+          <div id="heatmap-container" class="heatmap-container">
+            <p class="section-title">Heatmap Visualisation</p>
+            <div class="image-frame">
+              <img id="heatmap-image" src="" alt="Heatmap visualization">
+            </div>
+          </div>
+          
+          <div id="faces-container" class="faces-container">
+            <p class="section-title">Face Analysis</p>
+            <div id="face-results" class="face-results"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button id="open-react-app-btn" class="secondary-btn">
+        <span class="btn-text">Open React App for Advanced Analysis</span>
+        <i class="fas fa-external-link-alt btn-icon"></i>
+      </button>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

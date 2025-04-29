@@ -1,0 +1,5 @@
+Model,Accuracy (%),Training Time (min),Model Size (MB)
+resnet18,72.84,36.21,42.68
+efficientnet,75.43,35.19,15.46
+mobilenet,78.02,29.46,8.62
+custom,53.02,27.83,1.62
