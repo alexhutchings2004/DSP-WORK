@@ -163,6 +163,7 @@ const ImageDrop = () => {
   const [checkingModel, setCheckingModel] = useState(true);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [invalidFileError, setInvalidFileError] = useState(null);
   const modelCheckAttempts = useRef(0);
   const maxModelCheckAttempts = 5;
   const theme = useTheme();
@@ -209,15 +210,48 @@ const ImageDrop = () => {
     checkModelAvailability();
   }, []);
 
+  const isValidImageType = (file) => {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff', 'image/webp'];
+    return validTypes.includes(file.type);
+  };
+
   const { getRootProps, getInputProps } = useDropzone({
-    accept: { "image/*": [] },
-    onDrop: (acceptedFiles) => {
+    accept: {
+      'image/jpeg': [],
+      'image/png': [],
+      'image/jpg': [],
+      'image/bmp': [],
+      'image/tiff': [],
+      'image/webp': []
+    },
+    onDrop: (acceptedFiles, rejectedFiles) => {
       if (!modelAvailable) {
         setSnackbarMessage("Model is not ready yet. Please wait a moment.");
         setSnackbarOpen(true);
         return;
       }
-      handleImageSelection(acceptedFiles[0]);
+      
+      setInvalidFileError(null);
+      
+      if (rejectedFiles.length > 0) {
+        const file = rejectedFiles[0];
+        let errorMessage = "Invalid file";
+        
+        if (file.file && file.file.type && !isValidImageType(file.file)) {
+          errorMessage = `The file type "${file.file.type}" is not supported. Please upload JPG, JPEG, PNG, BMP, TIFF, or WebP images.`;
+        } else {
+          errorMessage = "Please upload a valid image file (JPG, PNG, BMP, TIFF, or WebP).";
+        }
+        
+        setInvalidFileError(errorMessage);
+        setSnackbarMessage(errorMessage);
+        setSnackbarOpen(true);
+        return;
+      }
+      
+      if (acceptedFiles.length > 0) {
+        handleImageSelection(acceptedFiles[0]);
+      }
     },
     noClick: true,
     noKeyboard: true
@@ -225,6 +259,16 @@ const ImageDrop = () => {
 
   const handleImageSelection = (file) => {
     if (!file) return;
+    
+    if (!isValidImageType(file)) {
+      const errorMessage = `The file type "${file.type}" is not supported. Please upload JPG, JPEG, PNG, BMP, TIFF, or WebP images.`;
+      setInvalidFileError(errorMessage);
+      setSnackbarMessage(errorMessage);
+      setSnackbarOpen(true);
+      return;
+    }
+    
+    setInvalidFileError(null);
     setError(null);
     setResults([]);
     setHistogramPath(null);
@@ -256,7 +300,9 @@ const ImageDrop = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
+          return response.json().then(errorData => {
+            throw new Error(`${response.status}: ${errorData.message || errorData.error || response.statusText}`);
+          });
         }
         return response.json();
       })
@@ -288,7 +334,11 @@ const ImageDrop = () => {
       })
       .catch((err) => {
         console.error("Error during prediction:", err);
-        setError(`Failed to process the image: ${err.message}`);
+        if (err.message && err.message.includes("No faces detected")) {
+          setError("No faces were detected in the image. Please upload a photo with at least one face for deepfake detection.");
+        } else {
+          setError(`Failed to process the image: ${err.message}`);
+        }
       })
       .finally(() => {
         setProcessing(false);
@@ -308,6 +358,15 @@ const ImageDrop = () => {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
           const blob = items[i].getAsFile();
+          
+          if (!isValidImageType(blob)) {
+            const errorMessage = `The pasted file type "${blob.type}" is not supported. Please paste JPG, JPEG, PNG, BMP, TIFF, or WebP images.`;
+            setInvalidFileError(errorMessage);
+            setSnackbarMessage(errorMessage);
+            setSnackbarOpen(true);
+            return;
+          }
+          
           handleImageSelection(blob);
           break;
         }
@@ -336,7 +395,17 @@ const ImageDrop = () => {
     }
     
     if (event.target.files && event.target.files[0]) {
-      handleImageSelection(event.target.files[0]);
+      const file = event.target.files[0];
+      
+      if (!isValidImageType(file)) {
+        const errorMessage = `The file type "${file.type}" is not supported. Please upload JPG, JPEG, PNG, BMP, TIFF, or WebP images.`;
+        setInvalidFileError(errorMessage);
+        setSnackbarMessage(errorMessage);
+        setSnackbarOpen(true);
+        return;
+      }
+      
+      handleImageSelection(file);
     }
   };
 
@@ -673,8 +742,23 @@ const ImageDrop = () => {
               </Button>
             </Stack>
 
+            {invalidFileError && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mt: 2, 
+                  maxWidth: '100%',
+                  backgroundColor: alpha(theme.palette.error.main, 0.1),
+                  border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`,
+                  borderRadius: 2
+                }}
+              >
+                <Typography variant="body2">{invalidFileError}</Typography>
+              </Alert>
+            )}
+
             <Typography variant="caption" color="text.secondary" mt={3}>
-              Supported formats: JPG, PNG, JPEG, BMP
+              Supported formats: JPG, PNG, JPEG, BMP, TIFF, WebP
             </Typography>
             
             {!modelAvailable && !checkingModel && (
@@ -809,6 +893,29 @@ const ImageDrop = () => {
                 >
                   <AlertTitle sx={{ fontWeight: 600 }}>Error</AlertTitle>
                   {error}
+                  {error.includes("No faces were detected") && (
+                    <Box mt={2}>
+                      <Typography variant="body2" color="textSecondary">
+                        The deepfake detection system requires images containing faces. 
+                        Please upload a clear photo with at least one visible face.
+                      </Typography>
+                      
+                      {imagePreview && (
+                        <Box 
+                          component="img"
+                          src={imagePreview}
+                          alt="Uploaded image"
+                          sx={{
+                            mt: 2,
+                            maxHeight: 200,
+                            maxWidth: '100%',
+                            borderRadius: 1,
+                            border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`
+                          }}
+                        />
+                      )}
+                    </Box>
+                  )}
                 </Alert>
               </Box>
             ) : (

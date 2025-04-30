@@ -91,6 +91,10 @@ export default function ModelSelector() {
                 {model.description || "Advanced EfficientNet model for deepfake detection"}
               </Typography>
               
+              <Typography variant="body2" color="textSecondary" className="mt-1">
+                Note: This model is designed to work specifically on face images for deepfake detection.
+              </Typography>
+              
               {details.accuracy && (
                 <Typography variant="body2" className="mt-2 flex items-center">
                   <span className="font-semibold mr-1">Accuracy:</span> 

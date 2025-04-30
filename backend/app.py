@@ -1047,8 +1047,19 @@ def predict():
         }), 503
     if 'image' not in request.files:
         return jsonify({"error": "No image provided"}), 400
+    
+    # Add file type validation
+    file = request.files['image']
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+    file_extension = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    
+    if file_extension not in allowed_extensions:
+        return jsonify({
+            "error": "Invalid file type",
+            "message": f"The uploaded file type '.{file_extension}' is not supported. Please use PNG, JPG, JPEG, BMP, TIFF, or WebP images."
+        }), 400
+    
     try:
-        file = request.files['image']
         img = Image.open(file).convert('RGB')
         unique_id = str(uuid.uuid4())
         filename = f"{unique_id}.png"
@@ -1121,6 +1132,28 @@ def predict():
             except Exception as e:
                 print(f"Error in face detection: {str(e)}")
                 faces = []
+        
+        # Check if any faces were detected
+        if len(faces) == 0:
+            # Try a more aggressive face detection with different parameters
+            try:
+                faces = face_cascade.detectMultiScale(
+                    gray,
+                    scaleFactor=1.05,
+                    minNeighbors=3,
+                    minSize=(20, 20)
+                )
+            except Exception as e:
+                print(f"Error in second-pass face detection: {str(e)}")
+                
+        # If still no faces, return an error
+        if len(faces) == 0:
+            return jsonify({
+                "error": "No faces detected",
+                "message": "Please upload an image containing at least one face for deepfake detection.",
+                "image": filename,  # Return the processed image for display
+                "timestamp": datetime.now().isoformat()
+            }), 400
         
         result_img = img.copy()
         faces_filename = None
@@ -1285,21 +1318,27 @@ def predict():
             "timestamp": datetime.now().isoformat()
         }), 500
 
-@app.route('/static/<filename>')
-def serve_image(filename):
-    return send_file(os.path.join('static', filename))
-
 @app.route('/store_extension_image', methods=['POST'])
 def store_extension_image():
     if 'image' not in request.files:
         return jsonify({"error": "No image provided"}), 400
     
     try:
+        # Add file type validation
+        file = request.files['image']
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'bmp', 'tiff', 'webp'}
+        file_extension = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        
+        if file_extension not in allowed_extensions:
+            return jsonify({
+                "error": "Invalid file type",
+                "message": f"The uploaded file type '.{file_extension}' is not supported. Please use PNG, JPG, JPEG, BMP, TIFF, or WebP images."
+            }), 400
+            
         # Generate a unique ID for this image
         image_id = str(uuid.uuid4())
         
         # Save the uploaded file
-        file = request.files['image']
         img = Image.open(file).convert('RGB')
         
         # Create a filename with the unique ID
@@ -1336,15 +1375,18 @@ def store_extension_image():
             "details": str(e)
         }), 500
 
+@app.route('/static/<filename>')
+def serve_image(filename):
+    return send_file(os.path.join('static', filename))
+
 @app.route('/get_extension_image/<image_id>', methods=['GET'])
 def get_extension_image(image_id):
     # Validate the image_id to prevent path traversal
     if not all(c.isalnum() or c == '-' for c in image_id):
         return jsonify({"error": "Invalid image ID"}), 400
-        
+    
     filename = f"extension_{image_id}.png"
     img_path = os.path.join('static', filename)
-    
     if not os.path.exists(img_path):
         return jsonify({"error": "Image not found", "path": img_path}), 404
     

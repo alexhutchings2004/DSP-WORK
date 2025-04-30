@@ -9,13 +9,13 @@ This project provides an end-to-end solution for detecting deepfake images throu
 1. **AI Model Training Framework** - EfficientNet-based deep learning models trained on deepfake datasets
 2. **Backend API Server** - Flask-based server that processes images and provides detection results
 3. **React Web Application** - Modern web interface for image upload and analysis
-4. **Chrome Extension** - Browser extension for analyzing images directly from social media
+4. **Chrome Extension** - Browser extension for analysing images directly from social media
 
 ## Repository Structure
 
 - `/backend` - Flask API server with model inference capabilities
   - `/models` - Trained deepfake detection models
-  - `/static` - Storage for processed images and visualizations
+  - `/static` - Storage for processed images and visualisations
 - `/DeepdakeDetectionApril` - Model training framework and dataset management
   - `/deepfake_detection` - Core Python package with model architectures and training utilities
   - `/results` - Saved model checkpoints and performance metrics
@@ -31,20 +31,20 @@ This project provides an end-to-end solution for detecting deepfake images throu
 ### AI Detection Models
 
 - **Multi-modal Analysis**: Processes images through multiple representations (RGB, noise pattern, frequency domain)
-- **Advanced Feature Extraction**: Uses EfficientNet architecture with specialized layers for deepfake artifacts
-- **Face Detection**: Automatically locates and analyzes faces in images
+- **Advanced Feature Extraction**: Uses EfficientNet architecture with specialised layers for deepfake artifacts
+- **Face Detection**: Automatically locates and analyses faces in images
 - **Explainable AI**: Provides heatmaps and visual explanations of detection results
 
 ### User Interface
 
 - **Drag-and-drop Interface**: Easy image upload through the React web application
-- **Real-time Analysis**: Quick processing and visualization of results
+- **Real-time Analysis**: Quick processing and visualisation of results
 - **Confidence Metrics**: Detailed probability scores and confidence levels
 - **Visual Explanations**: GradCAM heatmaps showing which parts of the image influenced the decision
 
 ### Chrome Extension
 
-- **Social Media Integration**: Directly analyze images from Twitter/X
+- **Social Media Integration**: Directly analyse images from Twitter/X
 - **One-click Analysis**: Simple interface for quick checks
 - **Seamless Handoff**: Transfer images to the main application for detailed analysis
 
